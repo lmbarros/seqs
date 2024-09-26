@@ -55,6 +55,16 @@ func (h *header) Get(key string) (string, bool) {
 	return "", false
 }
 
+func (h *header) GetAll() map[string]string {
+	res := map[string]string{}
+
+	for _, kv := range h.h {
+		res[string(kv.key)] = string(kv.value)
+	}
+
+	return res
+}
+
 func (h *header) Add(key, value string) {
 	if h.setSpecialHeader(key, value) {
 		return
