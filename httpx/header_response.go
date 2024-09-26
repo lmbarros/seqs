@@ -13,7 +13,7 @@ type ResponseHeader struct {
 	server        []byte
 	statusMessage []byte
 	now           time.Time
-	hdr           header
+	Hdr           header
 }
 
 func (h *ResponseHeader) serverTime() time.Time {
@@ -25,23 +25,23 @@ func (h *ResponseHeader) serverTime() time.Time {
 
 // Reset clears response header. It is ready for new use after returning from Reset.
 func (h *ResponseHeader) Reset() {
-	h.hdr.disableNormalizing = false
+	h.Hdr.disableNormalizing = false
 	// h.SetNoDefaultContentType(false)
 	// h.noDefaultDate = false
 	h.server = h.server[:0]
 	h.statusMessage = h.statusMessage[:0]
 	h.statusCode = 0
-	h.hdr.resetSkipNormalize()
+	h.Hdr.resetSkipNormalize()
 }
 
 // SetContentType sets Content-Type header value. i.e: "text/html; charset=utf-8"
 func (h *ResponseHeader) SetContentType(contentType string) {
-	h.hdr.SetContentType(contentType)
+	h.Hdr.SetContentType(contentType)
 }
 
 // SetContentLength sets Content-Length header value.
 func (h *ResponseHeader) SetContentLength(contentLength int) {
-	h.hdr.SetContentLength(contentLength)
+	h.Hdr.SetContentLength(contentLength)
 }
 
 // Server returns Server header value.
@@ -87,8 +87,8 @@ func (h *ResponseHeader) WriteTo(w io.Writer) (int64, error) {
 // either though ReleaseRequest or your request handler returning.
 // Do not store references to returned value. Make copies instead.
 func (h *ResponseHeader) Header() []byte {
-	h.hdr.bufKV.value = h.AppendBytes(h.hdr.bufKV.value[:0])
-	return h.hdr.bufKV.value
+	h.Hdr.bufKV.value = h.AppendBytes(h.Hdr.bufKV.value[:0])
+	return h.Hdr.bufKV.value
 }
 
 // SetStatusCode sets response status code. If not set will default to 200 (Status OK).
@@ -98,7 +98,7 @@ func (h *ResponseHeader) SetStatusCode(statusCode int) {
 
 // SetConnectionClose sets 'Connection: close' header.
 func (h *ResponseHeader) SetConnectionClose() {
-	h.hdr.SetConnectionClose()
+	h.Hdr.SetConnectionClose()
 }
 
 // Add adds the given 'key: value' header.
@@ -113,7 +113,7 @@ func (h *ResponseHeader) SetConnectionClose() {
 // If the header is set as a Trailer (forbidden trailers will not be set, see AddTrailer for more details),
 // it will be sent after the chunked response body.
 func (h *ResponseHeader) Add(key, value string) {
-	h.hdr.Add(key, value)
+	h.Hdr.Add(key, value)
 }
 
 // Peek returns header value for the given key.
@@ -122,13 +122,13 @@ func (h *ResponseHeader) Add(key, value string) {
 // either though ReleaseResponse or your request handler returning.
 // Do not store references to the returned value. Make copies instead.
 func (h *ResponseHeader) Peek(key string) []byte {
-	return h.hdr.Peek(key)
+	return h.Hdr.Peek(key)
 }
 
 // AppendBytes appends response header representation to dst and returns
 // the extended dst.
 func (h *ResponseHeader) AppendBytes(dst []byte) []byte {
-	h.hdr.trace("httpx:RspHdr.AppendBytes")
+	h.Hdr.trace("httpx:RspHdr.AppendBytes")
 	dst = h.appendStatusLine(dst[:0])
 
 	server := h.Server()
@@ -146,22 +146,22 @@ func (h *ResponseHeader) AppendBytes(dst []byte) []byte {
 	// Append Content-Type only for non-zero responses
 	// or if it is explicitly set.
 	// See https://github.com/valyala/fasthttp/issues/28 .
-	if h.hdr.ContentLength() != 0 || len(h.hdr.contentType) > 0 {
-		contentType := h.hdr.ContentType()
+	if h.Hdr.ContentLength() != 0 || len(h.Hdr.contentType) > 0 {
+		contentType := h.Hdr.ContentType()
 		if len(contentType) > 0 {
 			dst = appendHeaderLine(dst, strContentType, b2s(contentType))
 		}
 	}
-	contentEncoding := h.hdr.ContentEncoding()
+	contentEncoding := h.Hdr.ContentEncoding()
 	if len(contentEncoding) > 0 {
 		dst = appendHeaderLine(dst, strContentEncoding, b2s(contentEncoding))
 	}
 
-	if len(h.hdr.contentLengthBytes) > 0 {
-		dst = appendHeaderLine(dst, strContentLength, b2s(h.hdr.contentLengthBytes))
+	if len(h.Hdr.contentLengthBytes) > 0 {
+		dst = appendHeaderLine(dst, strContentLength, b2s(h.Hdr.contentLengthBytes))
 	}
 
-	return h.hdr.AppendReqRespCommon(dst)
+	return h.Hdr.AppendReqRespCommon(dst)
 }
 
 // appendStatusLine appends the response status line to dst and returns
@@ -171,7 +171,7 @@ func (h *ResponseHeader) appendStatusLine(dst []byte) []byte {
 	if statusCode < 0 {
 		statusCode = 200
 	}
-	return formatStatusLine(dst, h.hdr.Protocol(), statusCode, h.StatusMessage())
+	return formatStatusLine(dst, h.Hdr.Protocol(), statusCode, h.StatusMessage())
 }
 
 func formatStatusLine(dst []byte, protocol []byte, statusCode int, statusText []byte) []byte {
